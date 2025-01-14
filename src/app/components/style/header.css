@@ -1,17 +1,4 @@
-.editor-row {
-    display: grid;
-    grid-template-columns: 1fr 5fr;
-    width: 100%;
-  }
-  
-
-  
-  .panel-left {  
-    height: 100vh;
-    background-color: #463a3c;
-  }
-
-  .gjs-heading {
+.gjs-heading {
 	margin: 0;
 	color: rgba(29, 40, 55, 1);
 }
@@ -75,4 +62,3 @@
 	font-size: 1.1rem;
 	text-align: center;
 }
-

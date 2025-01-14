@@ -1,6 +1,6 @@
 import GrapesComponents from "./components/GrapesComponents";
 import 'grapesjs/dist/css/grapes.min.css'
-// import Navber from "./components/Navber";
+// import 'grapesjs-component-code-editor/dist/grapesjs-component-code-editor.min.css';
 
 
 
