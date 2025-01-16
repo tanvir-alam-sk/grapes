@@ -11,6 +11,7 @@ import gisPresetWebpage from "grapesjs-preset-webpage";
 import Header from "./Header";
 import CustomModal from "./CustomModal";
 import beautify from 'js-beautify';
+import { Geist, Geist_Mono } from "next/font/google";
 
 export default function GrapesComponents() {
   const [editor, setEditor] = useState({});
@@ -38,6 +39,7 @@ export default function GrapesComponents() {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="robots" content="index,follow">
     <meta name="generator" content="GrapesJS Studio">
+    
   </head>
   <body>
     <div id="i6po" class="gjs-grid-row">
@@ -980,10 +982,16 @@ export default function GrapesComponents() {
         gisPresetWebpage,
         function(editor) {
           const codeViewer = editor.CodeManager.getViewer('CodeMirror');
+          const optionsPanel = editor.Panels.getPanel('options');
+
+          // Remove the third button if it exists
+          optionsPanel?.get('buttons').remove(optionsPanel.get('buttons').models[3]);
+          optionsPanel?.get('buttons').remove(optionsPanel.get('buttons').models[5]);
+          // console.log(editor.Panels.getPanel('options')?.get('buttons').models[2])
           codeViewer.set({
             codeName: 'css',
             readOnly: false,
-            theme: 'default',
+            theme: 'material-darker',
             autoBeautify: true,
             lineNumbers: true,
             styleActiveLine: true,
@@ -2722,7 +2730,7 @@ export default function GrapesComponents() {
     var pfx = editor.getConfig().stylePrefix;
     var modal = editor.Modal;
     var cmdm = editor.Commands;
-    var codeViewer = editor.CodeManager.getViewer('CodeMirror').clone();
+    var codeViewer = editor.CodeManager.getViewer('CodeMirror');
     var pnm = editor.Panels;
     var container = document.createElement('div');
     var btnEdit = document.createElement('button');
@@ -2761,12 +2769,12 @@ export default function GrapesComponents() {
                 codeViewer.init(txtarea);
                 viewer = codeViewer.editor;
             }
-            console.log(editor.getHtml())
-            var InnerHtml = editor.getHtml();
+            var InnerHtml = editor.config.components;
             var Css = editor.getCss();
             modal.setContent('');
             modal.setContent(container);
-            codeViewer.setContent(InnerHtml + "<style>" + Css + '</style>');
+            const htmlpartition=InnerHtml?.split("</head>")
+            codeViewer.setContent(htmlpartition[0] + "<style>\n" + Css + '</style>'+htmlpartition[1]);
             modal.open();
             viewer.refresh();
         }
