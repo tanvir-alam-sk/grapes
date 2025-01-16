@@ -1,159 +1,125 @@
-  <div id="ioyxg" class="gjs-grid-row">
-    <div id="i8w4i" class="gjs-grid-column">
-      <h4 id="ihs4lb" class="gjs-heading gjs-text-blue">More Features</h4>
-      <h2 id="iiacm" class="gjs-heading">Put here the text describing why your features are </h2>
-      <span id="icxfor" class="gjs-text-blue">so amazing</span>
-      <div id="ia21sa" class="text-main-content">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua.</div>
-      <div id="ixzh1" class="gjs-grid-row">
-        <div id="ilpi3" class="gjs-grid-column feature-item">
-          <div data-type-icon id="ipmqo6" class="gjs-icon gjs-feature-icon"><svg viewBox="0 0 24 24">
-              <path
-                d="M16 9h3l-5 7m-4-7h4l-2 8M5 9h3l2 7m5-12h2l2 3h-3m-5-3h2l1 3h-4M7 4h2L8 7H5m1-5L2 8l10 14L22 8l-4-6H6z">
-              </path>
-            </svg></div>
-          <h3 id="in9ef" class="gjs-heading">Feature text</h3>
-          <div id="i8isa" class="text-main-content">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-        </div>
-        <div id="idv32l" class="gjs-grid-column feature-item">
-          <div data-type-icon id="ipmept" class="gjs-icon gjs-feature-icon"><svg viewBox="0 0 24 24">
-              <path
-                d="M16 9h3l-5 7m-4-7h4l-2 8M5 9h3l2 7m5-12h2l2 3h-3m-5-3h2l1 3h-4M7 4h2L8 7H5m1-5L2 8l10 14L22 8l-4-6H6z">
-              </path>
-            </svg></div>
-          <h3 id="ieu6p6" class="gjs-heading">Feature text</h3>
-          <div id="izqkf7" class="text-main-content">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+function(editor) {
+          const codeViewer = editor.CodeManager.getViewer('CodeMirror');
+          
+          
+          codeViewer.set({
+            codeName: 'htmlmixed',
+            readOnly: false, 
+            // theme: 'default',
+            // autoBeautify: true,
+            // autoCloseTags: true,
+            // autoCloseBrackets: true,
+            // lineNumbers: true,
+            // lineWrapping: true,
+            // styleActiveLine: true,
+            // smartIndent: true,
+            // indentWithTabs: true
+          });
+          
+          // Add custom command for code editing
+          editor.Commands.add('show-code', {
+            run: function(editor) {
+              const modal = editor.Modal;
+              
+              // modal.setTitle('Edit Code');
+              
+              // Get current HTML
+              const htmlContent = editor.getHtml();
+              const cssContent = editor.getCss();
 
+              console.log(htmlContent)
+              
+              // Create tabs for HTML and CSS
+              const container = document.createElement('div');
+              container.innerHTML = `
+                <div class="tabs">
+                  <button class="tab-html active">HTML</button>
+                  <button class="tab-css">CSS</button>
+                  <button>Save</button>
+                </div>
+                <div class="code-container">
+                  <div class="html-code"></div>
+                  <div class="css-code" style="display: none;"></div>
+                </div>
+              `;
+              
+              modal.setContent(container);
+              
+              // Initialize code editors
+              const htmlEditor = codeViewer.editor.clone();
+              const cssEditor = codeViewer.editor.clone();
+              
+              htmlEditor.setContent(htmlContent);
+              cssEditor.setContent(cssContent);
+              
+              // Add editors to containers
+              htmlEditor.init(container.querySelector('.html-code'));
+              cssEditor.init(container.querySelector('.css-code'));
+              
+              if (container) {
+                // Handle tab switching
+                const tabHtml = container.querySelector('.tab-html') as HTMLElement;
+                const tabCss = container.querySelector('.tab-css') as HTMLElement;
+                const htmlCode = container.querySelector('.html-code') as HTMLElement;
+                const cssCode = container.querySelector('.css-code') as HTMLElement;
+              
+                if (tabHtml && tabCss && htmlCode && cssCode) {
+                  tabHtml.addEventListener('click', () => {
+                    htmlCode.style.display = 'block';
+                    cssCode.style.display = 'none';
+                    tabHtml.classList.add('active');
+                    tabCss.classList.remove('active');
+                  });
+              
+                  tabCss.addEventListener('click', () => {
+                    htmlCode.style.display = 'none';
+                    cssCode.style.display = 'block';
+                    tabCss.classList.add('active');
+                    tabHtml.classList.remove('active');
+                  });
+                } else {
+                  console.error('One or more elements for tab switching are missing.');
+                }
+              } else {
+                console.error('Container element not found.');
+              }
+              
+              
+              const content = document.createElement('div');
 
+              htmlEditor.style.width = '100%';
+              htmlEditor.style.height = '150px';
+              cssEditor.style.width = '100%';
+              cssEditor.style.height = '150px';
 
+              // Set initial content
+              htmlEditor.value = editor.getHtml();
+              cssEditor.value = editor.getCss();
 
-  -----------------------------
+              // Create an update button
+              const updateButton = document.createElement('button');
+              updateButton.textContent = 'Update';
+              updateButton.className = 'primary-button';
+              updateButton.style.marginTop = '10px';
 
+              // Attach event listener to the update button
+              updateButton.addEventListener('click', () => {
+                // Update editor content
+                editor.setComponents(htmlEditor.value);
+                editor.setStyle(cssEditor.value);
+                modal.close();
+              });
 
-  .gjs-heading {
-	margin: 0;
-	color: rgba(29, 40, 55, 1);
-}
+              // Append editors and button to the modal content
+              content.appendChild(htmlEditor);
+              content.appendChild(cssEditor);
+              content.appendChild(updateButton);
 
-.gjs-grid-column {
-	flex: 1 1 0%;
-	padding: 5px 0;
-}
-
-.text-main-content {
-	line-height: 30px;
-	font-size: 1.2rem;
-}
-
-.text-main-content {
-	line-height: 30px;
-	font-size: 1.2rem;
-}
-.gjs-grid-row {
-	display: flex;
-	justify-content: flex-start;
-	align-items: stretch;
-	flex-direction: row;
-	min-height: auto;
-	padding: 10px 0;
-}
-
-.gjs-grid-column.feature-item {
-	padding-top: 15px;
-	padding-right: 15px;
-	padding-bottom: 15px;
-	padding-left: 15px;
-	display: flex;
-	flex-direction: column;
-	gap: 15px;
-	min-width: 30%;
-}
-
-#ioyxg {
-	justify-content: center;
-	padding-top: 80px;
-	padding-bottom: 80px;
-	padding-left: 20px;
-	padding-right: 20px;
-}
-
-#ixzh1 {
-	width: 100%;
-	flex-wrap: wrap;
-	justify-content: flex-start;
-	gap: 50px;
-}
-
-#i8isa {
-	padding: 10px;
-	padding-left: 0px;
-	padding-right: 0px;
-}
-
-
-#ia21sa {
-	padding: 10px;
-	max-width: 750px;
-	margin-bottom: 70px;
-	padding-left: 0px;
-	padding-right: 0px;
-}
-
-#ihs4lb {
-	font-size: 1.2rem;
-	margin-bottom: 15px;
-}
-
-#in9ef {
-	font-size: 1.5rem;
-}
-
-.gjs-icon {
-	display: inline-block;
-	text-decoration: none;
-	color: inherit;
-	vertical-align: middle;
-	fill: currentColor;
-	width: 50px;
-	height: 50px;
-}
-
-.gjs-text-blue {
-	color: rgb(36, 99, 235);
-}
-
-#izqkf7 {
-	padding: 10px;
-	padding-left: 0px;
-	padding-right: 0px;
-}
-
-#ieu6p6 {
-	font-size: 1.5rem;
-}
-
-.gjs-icon.gjs-feature-icon {
-	padding-top: 10px;
-	padding-right: 10px;
-	padding-bottom: 10px;
-	padding-left: 10px;
-	background-color: rgb(36, 99, 235);
-	color: white;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	border-bottom-right-radius: 10px;
-	border-bottom-left-radius: 10px;
-}
-
-@media (max-width:992px) {
-	.gjs-grid-row {
-		flex-direction: column;
-	}
-}
-
+              // Set modal title and content
+              modal.setTitle('Edit Code');
+              modal.setContent(content);
+              modal.open();
+              }
+          });
+          
+        }

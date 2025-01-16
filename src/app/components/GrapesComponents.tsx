@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable no-var */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
@@ -7,6 +10,7 @@ import "./style/GrapesComponents.css";
 import gisPresetWebpage from "grapesjs-preset-webpage";
 import Header from "./Header";
 import CustomModal from "./CustomModal";
+import beautify from 'js-beautify';
 
 export default function GrapesComponents() {
   const [editor, setEditor] = useState({});
@@ -20,9 +24,11 @@ export default function GrapesComponents() {
     const editor = grapesjs.init({
       container: "#editor",
       modal: { 
-        backdrop: false
+        backdrop: true,
+        className: 'custom-modal',
+        closeOnClickOutside: true,
+        // custom: true
        },
-      
       components: `
 <!DOCTYPE html>
 <html>
@@ -970,7 +976,21 @@ export default function GrapesComponents() {
       width: "auto",
       storageManager: false,
       selectorManager: { componentFirst: true },
-      plugins: [gisPresetWebpage],
+      plugins: [
+        gisPresetWebpage,
+        function(editor) {
+          const codeViewer = editor.CodeManager.getViewer('CodeMirror');
+          codeViewer.set({
+            codeName: 'css',
+            readOnly: false,
+            theme: 'default',
+            autoBeautify: true,
+            lineNumbers: true,
+            styleActiveLine: true,
+            smartIndent: true 
+          });  
+        },
+      ],
       pluginsOpts: {
         gisPresetWebpage: {},
       },
@@ -1595,7 +1615,6 @@ export default function GrapesComponents() {
           },
         ],
       },
-      
       styleManager: {
         sectors: [
           {
@@ -2570,16 +2589,136 @@ export default function GrapesComponents() {
             ],
           },
           {
-            name:"Custom CSS",
-            open:false,
-            properties:[
-              {}
+            name: 'Global Variables',
+            open: false,
+            buildProps: ['--primary-color', '--secondary-color', '--font-size-base'],
+            properties: [
+              {
+                name: 'Primary Color',
+                property: '--primary-color',
+                type: 'color',
+                defaults: '#ff0000',
+                onChange: ({ value }) => {
+                  document.documentElement.style.setProperty('--primary-color', value);
+                }
+              },
+              {
+                name: 'Secondary Color',
+                property: '--secondary-color',
+                type: 'color',
+                defaults: '#00ff00',
+                onChange: ({ value }) => {
+                  document.documentElement.style.setProperty('--secondary-color', value);
+                }
+              },
+              {
+                name: 'Base Font Size',
+                property: '--font-size-base',
+                type: 'slider',
+                units: ['px', 'rem', 'em'],
+                defaults: '16px',
+                min: 12,
+                max: 70,
+                onChange: ({ value }) => {
+                  document.documentElement.style.setProperty('--font-size-base', value);
+                }
+              }
             ]
           }
         ],
       },
     });
+  
 
+      editor.Commands.add('code-viewer-modal', {
+        run(editor, sender, options = {}) {
+          const modal = editor.Modal;
+          modal.setTitle('View Code');
+          modal.setContent(`
+            <div style="padding: px;">
+              <div class="code-content">
+              <div class="modal-left-content">
+                <h4 class="html-title">HTML</h4>
+                <div>
+                <textarea id="w3review" name="w3review">
+                ${editor.config.components}
+                </textarea>
+                </div>
+              </div>
+              <div class="modal-right-content">
+                <h4 class="css-title">CSS</h4>
+                <div>
+                <textarea id="w3review" name="w3review" rows="4" cols="50">
+                ${beautify.css(editor.getCss())}
+                </textarea>
+                </div>
+              </div>
+              </div>
+              <button class="close-btn">Close</button>
+            </div>
+            <style>
+            .custom-modal {
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              }
+              .code-content{
+                display:flex;
+                 gap:20px;
+              }
+              
+              .modal-left-content,.modal-right-content{
+                width: 50%;
+                background-color: rgba(0,0,0,0.15);
+              }
+              
+
+              .html-title,.css-title{
+              background-color: rgba(0,0,0,0.15);
+              //float:right;
+              margin:0;
+              }
+
+              textarea{
+              width:98%;
+              HEIGHT:400px;
+              background-color: rgba(0,0,0,0.15);
+              color:white;
+              border:none;
+              outline:none;
+              }
+              .close-btn {
+                background-color: rgba(0,0,0,0.15);
+                padding:4px 8px;
+                color:white;
+                shadow:none;
+                border:none;
+                float:right;
+                margin:10px;
+              }
+          `);
+
+          modal.open();
+
+          const closeBtn = modal.getContentEl().querySelector('.close-btn');
+          closeBtn.addEventListener('click', () => {
+            modal.close();
+          });
+        }
+      });
+
+      // Add buttons to the panel for each modal type
+      editor.Panels.addButton('options', [{
+        id: 'code-viewer-modal',
+        className: 'fa fa-code',
+        command: 'code-viewer-modal',
+        attributes: {
+          title: 'Open Modal'
+        }
+      }
+    ]);
+    // ------------------------------------------------------
+    // ------------------------------------------------------
     var pfx = editor.getConfig().stylePrefix;
     var modal = editor.Modal;
     var cmdm = editor.Commands;
@@ -2587,7 +2726,7 @@ export default function GrapesComponents() {
     var pnm = editor.Panels;
     var container = document.createElement('div');
     var btnEdit = document.createElement('button');
-    
+
     codeViewer.set({
         codeName: 'htmlmixed',
         readOnly: 0,
@@ -2600,7 +2739,7 @@ export default function GrapesComponents() {
         smartIndent: true,
         indentWithTabs: true
     });
-    
+
     btnEdit.innerHTML = 'Edit';
     btnEdit.className = pfx + 'btn-prim ' + pfx + 'btn-import';
     btnEdit.onclick = function() {
@@ -2609,7 +2748,7 @@ export default function GrapesComponents() {
         editor.setComponents(code.trim());
         modal.close();
     };
-    
+
     cmdm.add('html-edit', {
         run: function(editor, sender) {
             sender && sender.set('active', 0);
@@ -2622,6 +2761,7 @@ export default function GrapesComponents() {
                 codeViewer.init(txtarea);
                 viewer = codeViewer.editor;
             }
+            console.log(editor.getHtml())
             var InnerHtml = editor.getHtml();
             var Css = editor.getCss();
             modal.setContent('');
@@ -2631,7 +2771,7 @@ export default function GrapesComponents() {
             viewer.refresh();
         }
     });
-    
+
     pnm.addButton('options',
         [
             {
@@ -2643,26 +2783,16 @@ export default function GrapesComponents() {
                 }
             }
         ]
-    );  
+    );
+    // ------------------------------------------------------
     setEditor(editor);
   }, []);
-
-
-
 
   return (
     <div className="editor-row">
       <div className="panel-left"></div>
-      <div id="grapes-app">
-        <div id="editor">
-          <CustomModal
-            isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
-            htmlCode={htmlCode}
-            cssCode={cssCode}
-          ></CustomModal>
-        </div>
-      </div>
+      <div id="grapes-app"><div id="editor"></div></div>
     </div>
   );
 }
+

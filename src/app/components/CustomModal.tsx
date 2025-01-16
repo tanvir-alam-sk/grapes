@@ -21,7 +21,7 @@ export default function CustomModal({ isOpen, onClose, htmlCode, cssCode }) {
         value={htmlCode}
         style={{ width: '100%', height: '150px', marginBottom: '1rem' }}
       />
-      <h3>CSS</h3>
+      <h3>CSS111</h3>
       <textarea
         readOnly
         value={cssCode}
