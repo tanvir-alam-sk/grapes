@@ -10,7 +10,7 @@ import "./style/GrapesComponents.css";
 import gisPresetWebpage from "grapesjs-preset-webpage";
 import Header from "./Header";
 import CustomModal from "./CustomModal";
-import beautify from 'js-beautify';
+import { css as beautifyCss } from 'js-beautify';
 import { Geist, Geist_Mono } from "next/font/google";
 
 export default function GrapesComponents() {
@@ -983,20 +983,15 @@ export default function GrapesComponents() {
         function(editor) {
           const codeViewer = editor.CodeManager.getViewer('CodeMirror');
           const optionsPanel = editor.Panels.getPanel('options');
+          // codeViewer?.setContent(editor.config.components);
 
-          // Remove the third button if it exists
-          optionsPanel?.get('buttons').remove(optionsPanel.get('buttons').models[3]);
-          optionsPanel?.get('buttons').remove(optionsPanel.get('buttons').models[5]);
-          // console.log(editor.Panels.getPanel('options')?.get('buttons').models[2])
-          codeViewer.set({
-            codeName: 'css',
-            readOnly: false,
-            theme: 'material-darker',
-            autoBeautify: true,
-            lineNumbers: true,
-            styleActiveLine: true,
-            smartIndent: true 
-          });  
+
+         // Remove the third button if it exists
+          // const buttons = optionsPanel?.get('buttons');
+          // if (buttons) {
+          //     buttons.remove(buttons.models[3]);
+          //     buttons.remove(buttons.models[5]);
+          // }
         },
       ],
       pluginsOpts: {
@@ -2638,26 +2633,48 @@ export default function GrapesComponents() {
     });
   
 
+    const  pfx = editor.getConfig().stylePrefix;
+    const  modal = editor.Modal;
+    const  cmdm = editor.Commands;
+    const  codeViewer = editor.CodeManager.getViewer('CodeMirror');
+    const  pnm = editor.Panels;
+    const  container = document.createElement('div');
+    const  btnEdit = document.createElement('button');
+
+    codeViewer.set({
+      codeName: 'htmlmixed',
+      readOnly: 0,
+      theme: 'hopscotch',
+      autoBeautify: true,
+      autoCloseTags: true,
+      autoCloseBrackets: true,
+      lineWrapping: true,
+      styleActiveLine: true,
+      smartIndent: true,
+      indentWithTabs: true
+  });
+
+
+        // ---------------------------  Full (HTML+CSS ) Code   ---------------------------
       editor.Commands.add('code-viewer-modal', {
         run(editor, sender, options = {}) {
           const modal = editor.Modal;
           modal.setTitle('View Code');
+
           modal.setContent(`
             <div style="padding: px;">
               <div class="code-content">
               <div class="modal-left-content">
                 <h4 class="html-title">HTML</h4>
                 <div>
-                <textarea id="w3review" name="w3review">
-                ${editor.config.components}
+                <textarea id="html-review" name="html-review">
                 </textarea>
                 </div>
               </div>
               <div class="modal-right-content">
                 <h4 class="css-title">CSS</h4>
                 <div>
-                <textarea id="w3review" name="w3review" rows="4" cols="50">
-                ${beautify.css(editor.getCss())}
+                <textarea id="css-review" name="html-review">
                 </textarea>
                 </div>
               </div>
@@ -2683,13 +2700,12 @@ export default function GrapesComponents() {
 
               .html-title,.css-title{
               background-color: rgba(0,0,0,0.15);
-              //float:right;
               margin:0;
+              padding:4px;
               }
 
               textarea{
               width:98%;
-              HEIGHT:400px;
               background-color: rgba(0,0,0,0.15);
               color:white;
               border:none;
@@ -2708,10 +2724,34 @@ export default function GrapesComponents() {
 
           modal.open();
 
-          const closeBtn = modal.getContentEl().querySelector('.close-btn');
-          closeBtn.addEventListener('click', () => {
-            modal.close();
-          });
+
+          setTimeout(() => {
+            const rawCss = editor.getCss();
+
+            const beautifiedCss = beautifyCss(rawCss, {
+              indent_size: 4,
+              selector_separator_newline: true, 
+              newline_between_rules: true, 
+              space_around_combinator: true, 
+            });
+
+            const textareaEl = document.getElementById('html-review'); 
+            const textareacss = document.getElementById('css-review'); 
+
+            if (textareaEl) {
+              codeViewer.init(textareaEl); 
+              codeViewer.setContent(editor.config.components);
+              codeViewer.init(textareacss); 
+              codeViewer.setContent(beautifiedCss);
+              codeViewer.editor.refresh(); 
+            }
+          
+            const closeBtn = modal?.getContentEl()?.querySelector('.close-btn');
+            closeBtn?.addEventListener('click', () => {
+              modal.close();
+            });
+          }, 100)
+          
         }
       });
 
@@ -2725,34 +2765,17 @@ export default function GrapesComponents() {
         }
       }
     ]);
-    // ------------------------------------------------------
-    // ------------------------------------------------------
-    var pfx = editor.getConfig().stylePrefix;
-    var modal = editor.Modal;
-    var cmdm = editor.Commands;
-    var codeViewer = editor.CodeManager.getViewer('CodeMirror');
-    var pnm = editor.Panels;
-    var container = document.createElement('div');
-    var btnEdit = document.createElement('button');
 
-    codeViewer.set({
-        codeName: 'htmlmixed',
-        readOnly: 0,
-        theme: 'hopscotch',
-        autoBeautify: true,
-        autoCloseTags: true,
-        autoCloseBrackets: true,
-        lineWrapping: true,
-        styleActiveLine: true,
-        smartIndent: true,
-        indentWithTabs: true
-    });
+
+    // ---------------------------  Full (HTML+CSS Marge) Code   ---------------------------
+
+
 
     btnEdit.innerHTML = 'Edit';
     btnEdit.className = pfx + 'btn-prim ' + pfx + 'btn-import';
     btnEdit.onclick = function() {
-        var code = codeViewer.editor.getValue();
-        editor.DomComponents.getWrapper().set('content', '');
+        const  code = codeViewer.editor.getValue();
+        editor.DomComponents.getWrapper()?.set('content', '');
         editor.setComponents(code.trim());
         modal.close();
     };
@@ -2760,21 +2783,23 @@ export default function GrapesComponents() {
     cmdm.add('html-edit', {
         run: function(editor, sender) {
             sender && sender.set('active', 0);
-            var viewer = codeViewer.editor;
+            let  viewer = codeViewer.editor;
             modal.setTitle('Edit code');
             if (!viewer) {
-                var txtarea = document.createElement('textarea');
+                const  txtarea = document.createElement('textarea');
                 container.appendChild(txtarea);
                 container.appendChild(btnEdit);
                 codeViewer.init(txtarea);
                 viewer = codeViewer.editor;
             }
-            var InnerHtml = editor.config.components;
-            var Css = editor.getCss();
+            const  InnerHtml = editor.config.components;
+            const  Css = editor.getCss();
             modal.setContent('');
             modal.setContent(container);
             const htmlpartition=InnerHtml?.split("</head>")
-            codeViewer.setContent(htmlpartition[0] + "<style>\n" + Css + '</style>'+htmlpartition[1]);
+            if(htmlpartition){
+              codeViewer?.setContent(htmlpartition[0] + "<style>\n" + Css + '</style>'+htmlpartition[1]);
+            }
             modal.open();
             viewer.refresh();
         }
@@ -2792,7 +2817,8 @@ export default function GrapesComponents() {
             }
         ]
     );
-    // ------------------------------------------------------
+
+// ---------------------------  Full (HTML+CSS Marge) Code   ---------------------------
     setEditor(editor);
   }, []);
 
